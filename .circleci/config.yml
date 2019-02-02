@@ -36,6 +36,5 @@ jobs:
               etlweather/gaucho upgrade $RANCHER_EXAMPLE_NODEJS \
               --imageUuid 'docker:pawawat/example-nodejs-circle:latest' \
               --batch_size 1 --start_first \
-              --auto_complete --timeout 600\
-              /
+              --auto_complete --timeout 600
       - run: echo Done
