@@ -22,7 +22,8 @@ router.get('/', function (req, res, next) {
   res.status(200).json({
     env: config.env,
     uptime: format(process.uptime()),
-    networkInterfaces: ifaces
+    networkInterfaces: ifaces,
+    hello: "world"
   })
 });
 
