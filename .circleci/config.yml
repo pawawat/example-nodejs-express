@@ -16,7 +16,30 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
+  test:
+    docker:
+      - image: circleci/node:8.11.1-stretch
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback 
+            - v1-dependencies-
+      - run: npm install
       - run: npm test
+  build-image:
+    docker:
+      - image: circleci/node:8.11.1-stretch
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+         keys:
+           - v1-dependencies-{{ checksum "package.json" }}
+           # fallback 
+           - v1-dependencies-
       - setup_remote_docker
       - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
       - run:
@@ -27,6 +50,12 @@ jobs:
             docker build -t pawawat/example-nodejs-circle:${CIRCLE_SHA1} .
             docker push pawawat/example-nodejs-circle:latest
             docker push pawawat/example-nodejs-circle:${CIRCLE_SHA1}
+  ship:
+    docker:
+      - image: circleci/node:8.11.1-stretch
+    working_directory: ~/repo
+    steps:
+      - setup_remote_docker
       - run:
           command: |
             docker run --rm -it \
@@ -38,3 +67,21 @@ jobs:
               --batch_size 1 --start_first \
               --auto_complete --timeout 600
       - run: echo Done
+workflows:
+  version: 2
+  my_workflow:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - build-image:
+          requires:
+            - build
+            - test
+      - ship:
+          requires:
+            - build
+            - test
+            - build-image
+
